@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Lady Leadership Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .message-pop-in {
+            animation: popIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 flex items-center justify-center h-screen transition-colors duration-300">
+    <div class="w-full max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-2xl flex flex-col h-[90vh]">
+        <header class="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-4 sm:p-6 rounded-t-2xl shadow-lg flex justify-between items-center">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold">Iron Lady Assistant</h1>
+                <p class="text-xs sm:text-sm opacity-90">Your guide to leadership programs</p>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300">
+                <svg id="sun-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg id="moon-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </header>
+        
+        <div id="chat-window" class="flex-1 p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 space-y-6">
+             <div class="flex items-start gap-3 message-pop-in">
+                <div class="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-2 rounded-full w-10 h-10 flex-shrink-0 items-center justify-center font-bold text-lg shadow-md">IL</div>
+                <div class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 p-4 rounded-lg rounded-tl-none shadow-md max-w-xs md:max-w-md">
+                    <p class="font-semibold mb-1 text-purple-600 dark:text-purple-400">Iron Lady Assistant</p>
+                    <p>Hello! I'm here to help. Ask me anything about the Iron Lady leadership programs.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 rounded-b-2xl transition-colors duration-300">
+            <div id="loader" class="hidden flex items-center justify-center mb-2">
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                <p class="ml-3 text-slate-500 dark:text-slate-400 text-sm">Thinking...</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="text" id="user-input" class="flex-1 bg-slate-100 dark:bg-slate-700 border-2 border-transparent rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 dark:text-slate-200 transition" placeholder="Type your message...">
+                <button id="send-btn" class="bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-bold p-3 rounded-full hover:opacity-90 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Grab the elements we need
+        const chatWindow = document.getElementById('chat-window');
+        const inputField = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-btn');
+        const loader = document.getElementById('loader');
+        const themeToggle = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const doc = document.documentElement;
+
+        // Quick answers for common questions
+        const faqs = {
+            "what programs do you offer": "Iron Lady offers several leadership programs, including the 'Emerging Leaders Program' for new managers and the 'Executive Leadership Circle' for senior leaders. We also have specialized workshops on topics like 'Negotiation & Influence' and 'Strategic Thinking'.",
+            "program details": "Could you specify which program you're interested in? For example, the 'Emerging Leaders Program' is a 12-week online course with live sessions, peer mentoring, and a capstone project.",
+            "duration": "Program durations vary. The 'Emerging Leaders Program' is 12 weeks, while the 'Executive Leadership Circle' is a 6-month cohort-based program. Our workshops are typically 1-2 full days.",
+            "mode of delivery": "Our programs are primarily delivered online through a mix of live virtual classrooms, self-paced modules, and interactive forums. The Executive program includes optional in-person networking events.",
+            "is there a certification": "Yes, upon successful completion of any of our core programs, you will receive a certificate of completion from Iron Lady, which is recognized by our industry partners.",
+            "who are the mentors": "Our mentors are seasoned industry leaders, C-suite executives, and certified executive coaches from diverse backgrounds. Each participant is matched with a mentor based on their career goals.",
+            "how to apply": "You can apply directly through our website. The application process involves filling out an online form and a short essay on your leadership aspirations. Shortlisted candidates will be invited for a virtual interview.",
+            "what is iron lady": "Iron Lady is a leadership development organization dedicated to empowering women to achieve their full potential in the workplace and beyond.",
+            "cost": "The program fees vary. The Emerging Leaders Program is $2,500. For details on other programs, please check our website or ask about a specific program.",
+            "help": "I can answer questions about our program details, duration, mode, certification, mentors, application process, and cost. What would you like to know?"
+        };
+
+        const apiKey = "AIzaSyA3s3YLJwGbSN92MOVnX5zvlq-mck1jdSk"; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+
+        // Theme switching logic
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            doc.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            doc.classList.toggle('dark');
+            const isDark = doc.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            sunIcon.classList.toggle('hidden', isDark);
+            moonIcon.classList.toggle('hidden', !isDark);
+        });
+        
+        function addMessage(sender, message, isUser) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message-pop-in';
+
+            if (isUser) {
+                msgDiv.classList.add('flex', 'justify-end');
+                msgDiv.innerHTML = `
+                    <div class="bg-indigo-500 dark:bg-indigo-600 text-white p-4 rounded-lg rounded-br-none shadow-md max-w-xs md:max-w-md">
+                        <p>${message}</p>
+                    </div>`;
+            } else {
+                msgDiv.classList.add('flex', 'items-start', 'gap-3');
+                msgDiv.innerHTML = `
+                    <div class="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-2 rounded-full w-10 h-10 flex-shrink-0 items-center justify-center font-bold text-lg shadow-md">IL</div>
+                    <div class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 p-4 rounded-lg rounded-tl-none shadow-md max-w-xs md:max-w-md">
+                        <p class="font-semibold mb-1 text-purple-600 dark:text-purple-400">${sender}</p>
+                        <p>${message}</p>
+                    </div>`;
+            }
+            chatWindow.appendChild(msgDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // always scroll to bottom
+        }
+
+        function askGemini(query) {
+            const systemPrompt = `You are a friendly and helpful AI assistant for 'Iron Lady', a leadership development organization for women. Your role is to answer questions about their programs. Be concise and encouraging. If you don't know the answer, politely say that you can connect them with a human advisor. Here is some context: Iron Lady offers programs like 'Emerging Leaders' (12 weeks, online, for new managers), 'Executive Leadership Circle' (6 months, cohort-based, for senior leaders), and workshops. They provide certification and mentorship from industry leaders.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // If response isn't good, throw an error to be caught below
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                const botResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (botResponse) {
+                    addMessage("Iron Lady Assistant", botResponse, false);
+                } else {
+                    addMessage("Iron Lady Assistant", "I'm sorry, I couldn't generate a response. Could you please rephrase your question?", false);
+                }
+            })
+            .catch(error => {
+                console.error("Error calling Gemini API:", error);
+                addMessage("Iron Lady Assistant", "I'm having trouble connecting right now. Please try again in a moment.", false);
+            })
+            .finally(() => {
+                loader.classList.add('hidden'); // Hide loader regardless of outcome
+            });
+        }
+        
+        function handleSend() {
+            const text = inputField.value.trim();
+            if (text === "") return;
+
+            addMessage("You", text, true);
+            inputField.value = ""; // clear the input
+            loader.classList.remove('hidden');
+
+            // check if the question is in our quick FAQs first
+            const matchedKey = Object.keys(faqs).find(key => text.toLowerCase().indexOf(key) > -1);
+
+            if (matchedKey) {
+                setTimeout(() => {
+                    addMessage("Iron Lady Assistant", faqs[matchedKey], false);
+                    loader.classList.add('hidden');
+                }, 1200); // simulate thinking
+            } else {
+                askGemini(text);
+            }
+        }
+
+        sendButton.addEventListener('click', handleSend);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+    </script>
+</body>
+</html>
